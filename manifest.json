@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "UseSaved",
+  "version": "1.0",
+  "description": "Save any URL. Find it later with plain English.",
+  "permissions": ["storage", "tabs", "activeTab", "sidePanel"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Save to UseSaved",
+    "default_icon": { "128": "icons/icon128.png" }
+  },
+  "icons": { "128": "icons/icon128.png" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "background": { "service_worker": "background.js" }
+}

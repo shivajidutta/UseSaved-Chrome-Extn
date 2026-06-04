@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UseSaved</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- LOGIN VIEW -->
+  <div id="login-view">
+    <div class="header">
+      <span class="logo">UseSaved</span>
+    </div>
+    <div class="body-area">
+      <button id="login-btn" class="btn-primary">Sign In</button>
+      <div id="login-form" style="display:none; margin-top:12px;">
+        <input type="email" id="email-input" class="input-field" placeholder="Email" autocomplete="email" />
+        <input type="password" id="password-input" class="input-field" placeholder="Password" autocomplete="current-password" />
+        <div id="login-error" class="error-msg" style="display:none;"></div>
+        <button id="submit-login-btn" class="btn-primary" style="margin-top:4px;">Sign In</button>
+      </div>
+      <div class="page-preview-box" id="preview-box">
+        <div style="padding:12px 14px;">
+          <div id="preview-title" style="font-size:13px;font-weight:500;color:#374151;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE VIEW -->
+  <div id="save-view" style="display:none;">
+    <div class="header">
+      <span class="logo">UseSaved</span>
+      <span id="pro-badge" style="display:none; font-size:11px; background:#6366f1; color:white; padding:2px 7px; border-radius:4px; font-weight:600;">PRO</span>
+    </div>
+    <div class="body-area">
+      <div class="page-info-box">
+        <div id="save-title" class="page-title"></div>
+        <div id="save-url" class="page-url"></div>
+      </div>
+      <textarea id="save-note" rows="3" class="input-field" placeholder="Add a note (optional)..." style="resize:vertical;"></textarea>
+      <button id="save-btn" class="btn-primary">Save This Page</button>
+      <div id="status-msg" class="status-msg" style="display:none;"></div>
+      <button id="open-search-btn" class="btn-secondary" style="margin-top:8px;">Search my saves →</button>
+    </div>
+    <div class="footer-row">
+      <span id="credits-display" class="credits-display"></span>
+      <a href="http://localhost:3002" target="_blank" id="dashboard-link" class="dashboard-link">Dashboard</a>
+      <a href="#" id="logout-link" class="logout-link">Log out</a>
+    </div>
+  </div>
+
+  <script src="supabase.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

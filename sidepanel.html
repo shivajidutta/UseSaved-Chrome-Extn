@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UseSaved</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+
+  <!-- LOGIN VIEW -->
+  <div id="sp-login-view">
+    <div class="sp-header">
+      <span class="logo">UseSaved</span>
+    </div>
+    <div class="sp-body">
+      <p style="font-size:14px; color:#6b7280; margin-bottom:16px; line-height:1.5;">
+        Save any URL and find it later using plain English.
+      </p>
+      <button id="sp-login-btn" class="sp-btn-primary">Sign In</button>
+      <div id="sp-login-form" style="display:none; margin-top:12px;">
+        <input type="email" id="sp-email" class="sp-input" placeholder="Email" autocomplete="email" />
+        <input type="password" id="sp-password" class="sp-input" placeholder="Password" autocomplete="current-password" />
+        <div id="sp-login-error" class="sp-error-msg" style="display:none;"></div>
+        <button id="sp-submit-login" class="sp-btn-primary" style="margin-top:4px;">Sign In</button>
+      </div>
+      <div class="sp-current-page-box" id="sp-current-page-box" style="display:none;">
+        <div style="font-size:11px; color:#9ca3af; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Current Page</div>
+        <div id="sp-current-title" style="font-size:13px; font-weight:500; color:#111827; margin-bottom:3px;"></div>
+        <div id="sp-current-url" style="font-size:11px; color:#9ca3af; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN VIEW -->
+  <div id="sp-main-view" style="display:none; display:flex; flex-direction:column; height:100%;">
+    <div class="sp-header">
+      <span class="logo">UseSaved</span>
+    </div>
+    <div class="sp-body">
+      <div id="sp-greeting" class="sp-greeting"></div>
+      <div class="sp-search-label">What can I help you find?</div>
+      <textarea id="sp-search-input" class="sp-textarea" rows="3" placeholder="Describe what you're looking for…"></textarea>
+      <button id="sp-search-btn" class="sp-btn-primary">Search</button>
+      <div id="sp-search-error" class="sp-error-msg" style="display:none; margin-top:8px;"></div>
+      <div id="sp-results" style="margin-top:16px;"></div>
+    </div>
+    <div class="sp-footer">
+      <button id="sp-dashboard-btn" class="sp-btn-dashboard">Open Dashboard</button>
+    </div>
+  </div>
+
+  <script src="supabase.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
