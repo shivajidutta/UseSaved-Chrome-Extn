@@ -23,7 +23,7 @@ function showLoginView() {
     if (tab) {
       currentUrl = tab.url || ''
       currentTitle = tab.title || ''
-      document.getElementById('preview-title').textContent = currentTitle || currentUrl
+      document.getElementById('login-page-title').textContent = currentTitle || currentUrl
     }
   })
 }
@@ -36,48 +36,45 @@ function showSaveView(profile) {
     if (tab) {
       currentUrl = tab.url || ''
       currentTitle = tab.title || ''
-      document.getElementById('save-title').textContent = currentTitle || '(No title)'
-      document.getElementById('save-url').textContent = currentUrl
+      document.getElementById('page-title').textContent = currentTitle || '(No title)'
+      document.getElementById('page-url').textContent = currentUrl
     }
   })
 
   const plan = profile.plan || 'free'
   const credits = profile.credit_balance != null ? Number(profile.credit_balance) : 0
-  const proBadge = document.getElementById('pro-badge')
-  const creditsDisplay = document.getElementById('credits-display')
+  const creditsEl = document.getElementById('credits-display')
 
   if (plan === 'pro') {
-    proBadge.style.display = 'inline'
-    creditsDisplay.textContent = 'Pro — unlimited saves'
-    creditsDisplay.className = 'credits-display'
+    creditsEl.textContent = 'Pro'
+    creditsEl.className = 'us-credits pro'
+  } else if (credits === 0) {
+    creditsEl.textContent = '0 credits'
+    creditsEl.className = 'us-credits empty'
+  } else if (credits < 50) {
+    creditsEl.textContent = `${credits} credit${credits !== 1 ? 's' : ''} remaining`
+    creditsEl.className = 'us-credits low'
   } else {
-    proBadge.style.display = 'none'
-    creditsDisplay.textContent = `${credits} credit${credits !== 1 ? 's' : ''} remaining`
-    if (credits === 0) {
-      creditsDisplay.className = 'credits-display empty'
-    } else if (credits < 50) {
-      creditsDisplay.className = 'credits-display low'
-    } else {
-      creditsDisplay.className = 'credits-display'
-    }
+    creditsEl.textContent = `${credits} credit${credits !== 1 ? 's' : ''} remaining`
+    creditsEl.className = 'us-credits healthy'
   }
 }
 
 function showStatus(message, type) {
   const el = document.getElementById('status-msg')
-  el.className = `status-msg ${type}`
-  el.style.display = 'block'
+  el.className = `us-status ${type}`
+  el.style.display = 'flex'
   if (type === 'success') {
-    el.innerHTML = '<span style="color:#166534;font-weight:600">Saved</span> <span class="tick-circle">✓</span> <span style="color:#6b7280">AI tagging in progress.</span>'
+    el.innerHTML = '<span class="saved-word">Saved</span> <span class="tick-circle">✓</span> <span class="tagging-text">AI tagging in progress.</span>'
   } else {
     el.textContent = message
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get(['session', 'profile'], (result) => {
-    if (result.session && result.profile) {
-      showSaveView(result.profile)
+  chrome.storage.local.get(['session', 'userProfile'], (stored) => {
+    if (stored.session && stored.userProfile) {
+      showSaveView(stored.userProfile)
     } else {
       showLoginView()
     }
@@ -85,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('login-btn').addEventListener('click', () => {
     document.getElementById('login-btn').style.display = 'none'
-    document.getElementById('login-form').style.display = 'block'
+    document.getElementById('login-form').style.display = 'flex'
     document.getElementById('email-input').focus()
   })
 
@@ -113,9 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const session = data.session
       const token = session.access_token
 
-      let profile = { plan: 'free', credit_balance: 0, email }
+      let userProfile = { plan: 'free', credit_balance: 0, email }
 
-      // Creates user row on first login; returns credit_balance for new users
+      // Register / fetch beta credits on first login
       try {
         const regRes = await fetch(`${BACKEND_URL}/api/users/register`, {
           method: 'POST',
@@ -127,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         if (regRes.ok) {
           const d = await regRes.json()
-          profile = {
+          userProfile = {
             email,
             plan: d.plan ?? 'free',
             credit_balance: typeof d.credit_balance === 'number' ? d.credit_balance : 0,
@@ -135,26 +132,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (_) {}
 
-      // Authoritative current balance straight from the users table
+      // Authoritative current balance from users table
       try {
         const meRes = await fetch(`${BACKEND_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (meRes.ok) {
           const me = await meRes.json()
-          if (typeof me.credit_balance === 'number') profile.credit_balance = me.credit_balance
-          if (me.plan) profile.plan = me.plan
+          if (typeof me.credit_balance === 'number') userProfile.credit_balance = me.credit_balance
+          if (me.plan) userProfile.plan = me.plan
         }
       } catch (_) {}
 
-      chrome.storage.local.set({ session, profile }, () => {
-        showSaveView(profile)
+      chrome.storage.local.set({ session, userProfile }, () => {
+        showSaveView(userProfile)
       })
     } catch (err) {
       errorEl.textContent = err.message || 'Sign in failed. Please try again.'
       errorEl.style.display = 'block'
       submitBtn.disabled = false
-      submitBtn.textContent = 'Sign In'
+      submitBtn.textContent = 'Log In'
     }
   })
 
@@ -169,18 +166,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('save-btn').addEventListener('click', async () => {
     const saveBtn = document.getElementById('save-btn')
     const saveNote = document.getElementById('save-note').value.trim()
+    const statusEl = document.getElementById('status-msg')
 
+    saveBtn.textContent = 'Saving...'
     saveBtn.disabled = true
-    showStatus('Saving…', 'loading')
+    statusEl.style.display = 'none'
 
-    chrome.storage.local.get(['session'], async (result) => {
-      if (!result.session) {
-        showStatus('Session expired. Please sign in again.', 'error')
-        saveBtn.disabled = false
+    chrome.storage.local.get(['session', 'userProfile'], async (stored) => {
+      if (!stored.session) {
+        showLoginView()
         return
       }
 
-      const token = result.session.access_token
+      const token = stored.session.access_token
 
       try {
         const res = await fetch(`${BACKEND_URL}/api/saves`, {
@@ -192,32 +190,35 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ url: currentUrl, save_note: saveNote }),
         })
 
-        if (res.status === 201) {
+        if (res.ok) {
+          const data = await res.json()
           document.getElementById('save-note').value = ''
           showStatus('', 'success')
-          setTimeout(() => window.close(), 2000)
+          saveBtn.disabled = false
+          saveBtn.textContent = 'Save This Page'
+          setTimeout(window.close, 2000)
 
-          const data = await res.json()
           if (data.credits_remaining !== undefined) {
-            chrome.storage.local.get(['profile'], (r) => {
-              const updated = { ...(r.profile || {}), credit_balance: data.credits_remaining }
-              chrome.storage.local.set({ profile: updated }, () => {
-                showSaveView(updated)
-                showStatus('', 'success')
-              })
+            chrome.storage.local.get(['userProfile'], (r) => {
+              const updated = { ...(r.userProfile || {}), credit_balance: data.credits_remaining }
+              chrome.storage.local.set({ userProfile: updated })
             })
           }
         } else if (res.status === 402) {
           showStatus('No credits remaining. Upgrade to Pro to keep saving.', 'error')
+          saveBtn.disabled = false
+          saveBtn.textContent = 'Save This Page'
         } else {
           const err = await res.json().catch(() => ({}))
           showStatus(err.error || 'Save failed. Please try again.', 'error')
+          saveBtn.disabled = false
+          saveBtn.textContent = 'Save This Page'
         }
       } catch (_) {
         showStatus('Network error. Check your connection.', 'error')
+        saveBtn.disabled = false
+        saveBtn.textContent = 'Save This Page'
       }
-
-      saveBtn.disabled = false
     })
   })
 
@@ -232,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('logout-link').addEventListener('click', async (e) => {
     e.preventDefault()
     await supabaseClient.auth.signOut()
-    chrome.storage.local.remove(['session', 'profile'], () => {
+    chrome.storage.local.remove(['session', 'userProfile'], () => {
       showLoginView()
     })
   })

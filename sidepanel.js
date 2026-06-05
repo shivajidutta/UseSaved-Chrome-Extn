@@ -24,10 +24,8 @@ function showLoginView() {
 
   getCurrentTab().then((tab) => {
     if (tab && tab.url) {
-      const box = document.getElementById('sp-current-page-box')
       document.getElementById('sp-current-title').textContent = tab.title || tab.url
       document.getElementById('sp-current-url').textContent = tab.url
-      box.style.display = 'block'
     }
   })
 }
@@ -45,11 +43,11 @@ function showMainView(profile) {
 }
 
 function renderResults(results) {
-  const container = document.getElementById('sp-results')
-  container.innerHTML = ''
+  const list = document.getElementById('sp-results-list')
+  list.innerHTML = ''
 
   if (!results || results.length === 0) {
-    container.innerHTML = '<p style="font-size:13px; color:#9ca3af; text-align:center; padding:24px 0;">No results found. Try a different search.</p>'
+    list.innerHTML = '<p style="font-size:13px;color:#9ca3af;text-align:center;padding:24px 0;">No saves matched that description.</p>'
     return
   }
 
@@ -60,59 +58,74 @@ function renderResults(results) {
     const title = document.createElement('div')
     title.className = 'sp-result-title'
     title.textContent = item.title || item.url || 'Untitled'
+    card.appendChild(title)
 
-    const url = document.createElement('div')
-    url.className = 'sp-result-url'
-    url.textContent = item.url || ''
+    if (item.url) {
+      const url = document.createElement('div')
+      url.className = 'sp-result-url'
+      url.textContent = item.url
+      card.appendChild(url)
+    }
 
     const badges = document.createElement('div')
     badges.className = 'sp-badges'
 
-    if (item.topic_domain) {
+    if (typeof item.similarity === 'number') {
       const b = document.createElement('span')
-      b.className = 'sp-badge-match'
+      b.className = 'sp-badge sp-badge-match'
+      b.textContent = `${Math.round(item.similarity * 100)}% match`
+      badges.appendChild(b)
+    } else if (item.topic_domain) {
+      const b = document.createElement('span')
+      b.className = 'sp-badge sp-badge-match'
       b.textContent = item.topic_domain
       badges.appendChild(b)
     }
 
     if (item.source_platform) {
       const b = document.createElement('span')
-      b.className = 'sp-badge-platform'
+      b.className = 'sp-badge sp-badge-platform'
       b.textContent = item.source_platform
       badges.appendChild(b)
     }
 
-    card.appendChild(title)
-    card.appendChild(url)
     if (badges.children.length > 0) card.appendChild(badges)
+
+    if (item.summary) {
+      const summary = document.createElement('div')
+      summary.className = 'sp-result-summary'
+      summary.textContent = item.summary
+      card.appendChild(summary)
+    }
 
     card.addEventListener('click', () => {
       if (item.url) chrome.tabs.create({ url: item.url })
     })
 
-    container.appendChild(card)
+    list.appendChild(card)
   })
 }
 
 async function doSearch() {
   const query = document.getElementById('sp-search-input').value.trim()
-  const errorEl = document.getElementById('sp-search-error')
   const searchBtn = document.getElementById('sp-search-btn')
-
-  errorEl.style.display = 'none'
+  const resultsList = document.getElementById('sp-results-list')
+  const resultsHint = document.getElementById('sp-results-hint')
 
   if (!query) return
 
-  chrome.storage.local.get(['session'], async (result) => {
-    if (!result.session) {
-      errorEl.textContent = 'Session expired. Please sign in again.'
-      errorEl.style.display = 'block'
+  chrome.storage.local.get(['session'], async (stored) => {
+    if (!stored.session) {
+      resultsHint.style.display = 'none'
+      resultsList.innerHTML = '<p style="font-size:13px;color:#dc2626;text-align:center;padding:16px 0;">Session expired. Please sign in again.</p>'
       return
     }
 
-    const token = result.session.access_token
+    const token = stored.session.access_token
     searchBtn.disabled = true
     searchBtn.textContent = 'Searching…'
+    resultsHint.style.display = 'none'
+    resultsList.innerHTML = ''
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/search`, {
@@ -129,12 +142,10 @@ async function doSearch() {
         renderResults(data.results || data)
       } else {
         const err = await res.json().catch(() => ({}))
-        errorEl.textContent = err.error || 'Search failed. Please try again.'
-        errorEl.style.display = 'block'
+        resultsList.innerHTML = `<p style="font-size:13px;color:#dc2626;text-align:center;padding:16px 0;">${err.error || 'Search failed. Please try again.'}</p>`
       }
     } catch (_) {
-      errorEl.textContent = 'Network error. Check your connection.'
-      errorEl.style.display = 'block'
+      resultsList.innerHTML = '<p style="font-size:13px;color:#dc2626;text-align:center;padding:16px 0;">Network error. Check your connection.</p>'
     }
 
     searchBtn.disabled = false
@@ -143,9 +154,9 @@ async function doSearch() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get(['session', 'profile'], (result) => {
-    if (result.session && result.profile) {
-      showMainView(result.profile)
+  chrome.storage.local.get(['session', 'userProfile'], (stored) => {
+    if (stored.session && stored.userProfile) {
+      showMainView(stored.userProfile)
     } else {
       showLoginView()
     }
@@ -153,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('sp-login-btn').addEventListener('click', () => {
     document.getElementById('sp-login-btn').style.display = 'none'
-    document.getElementById('sp-login-form').style.display = 'block'
+    document.getElementById('sp-login-form').style.display = 'flex'
     document.getElementById('sp-email').focus()
   })
 
@@ -181,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const session = data.session
       const token = session.access_token
 
-      let profile = { plan: 'free', credit_balance: 0, email }
+      let userProfile = { plan: 'free', credit_balance: 0, email }
 
       try {
         const regRes = await fetch(`${BACKEND_URL}/api/users/register`, {
@@ -193,23 +204,25 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ email }),
         })
         if (regRes.ok) {
-          const regData = await regRes.json()
-          profile.credit_balance = regData.credit_balance ?? 0
-          profile.plan = regData.plan ?? 'free'
+          const d = await regRes.json()
+          userProfile.credit_balance = d.credit_balance ?? 0
+          userProfile.plan = d.plan ?? 'free'
         }
-      } catch (_) {
-        // Registration endpoint may 409 for existing users — ignore
-      }
+      } catch (_) {}
 
-      chrome.storage.local.set({ session, profile }, () => {
-        showMainView(profile)
+      chrome.storage.local.set({ session, userProfile }, () => {
+        showMainView(userProfile)
       })
     } catch (err) {
       errorEl.textContent = err.message || 'Sign in failed. Please try again.'
       errorEl.style.display = 'block'
       submitBtn.disabled = false
-      submitBtn.textContent = 'Sign In'
+      submitBtn.textContent = 'Log In'
     }
+  })
+
+  document.getElementById('sp-email').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('sp-submit-login').click()
   })
 
   document.getElementById('sp-password').addEventListener('keydown', (e) => {
@@ -226,6 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 
   document.getElementById('sp-dashboard-btn').addEventListener('click', () => {
-    chrome.tabs.create({ url: 'http://localhost:3000' })
+    chrome.tabs.create({ url: 'https://app.usesaved.com' })
   })
 })

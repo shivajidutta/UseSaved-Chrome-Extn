@@ -8,51 +8,81 @@
 </head>
 <body>
 
-  <!-- LOGIN VIEW -->
-  <div id="login-view">
-    <div class="header">
-      <span class="logo">UseSaved</span>
+<!-- LOGIN VIEW -->
+<div id="login-view">
+  <header class="us-header">
+    <svg class="us-logo-svg" viewBox="0 0 708 946" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:10;">
+      <path d="M613.871,23.91l0,555.69c0,57.421 -46.618,104.039 -104.039,104.039l-312.116,0c-57.421,0 -104.039,-46.618 -104.039,-104.039l0,-555.69l260.097,175.223l260.097,-175.223Z" style="fill:#ffffff;"/>
+      <path d="M241.274,466.274l112.5,-112.5l112.5,112.5" style="fill:none;stroke:#03c4a1;stroke-width:75px;"/>
+      <path d="M353.774,591.676l0,-237.902" style="fill:none;stroke:#03c4a1;stroke-width:75px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+      <path d="M179.846,307.144l0,-54.674l340.86,0l0,54.674" style="fill:none;stroke:#c03088;stroke-width:64.1px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+    </svg>
+    <div class="us-wordmark">
+      <span class="us-word-use">Use</span>
+      <span class="us-word-saved">Saved</span>
     </div>
-    <div class="body-area">
-      <button id="login-btn" class="btn-primary">Sign In</button>
-      <div id="login-form" style="display:none; margin-top:12px;">
-        <input type="email" id="email-input" class="input-field" placeholder="Email" autocomplete="email" />
-        <input type="password" id="password-input" class="input-field" placeholder="Password" autocomplete="current-password" />
-        <div id="login-error" class="error-msg" style="display:none;"></div>
-        <button id="submit-login-btn" class="btn-primary" style="margin-top:4px;">Sign In</button>
-      </div>
-      <div class="page-preview-box" id="preview-box">
-        <div style="padding:12px 14px;">
-          <div id="preview-title" style="font-size:13px;font-weight:500;color:#374151;"></div>
-        </div>
-      </div>
+  </header>
+
+  <div class="us-body">
+    <p class="us-tagline">Your personal knowledge library</p>
+
+    <button id="login-btn" class="us-btn-primary">Sign In</button>
+
+    <div id="login-form" style="display:none">
+      <input type="email" id="email-input" class="us-input" placeholder="your@email.com" />
+      <input type="password" id="password-input" class="us-input" placeholder="Password" />
+      <button id="submit-login-btn" class="us-btn-primary">Log In</button>
+      <p id="login-error" class="us-error" style="display:none"></p>
     </div>
+
+    <div id="page-preview-box" class="us-preview-box">
+      <p id="login-page-title" class="us-preview-text">Sign in to save this page</p>
+    </div>
+
+    <p class="us-bottom-hint">No account? <a href="https://www.usesaved.com/waitlist" target="_blank">Join the waitlist</a></p>
+  </div>
+</div>
+
+<!-- SAVE VIEW -->
+<div id="save-view" style="display:none">
+  <header class="us-header">
+    <svg class="us-logo-svg" viewBox="0 0 708 946" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:10;">
+      <path d="M613.871,23.91l0,555.69c0,57.421 -46.618,104.039 -104.039,104.039l-312.116,0c-57.421,0 -104.039,-46.618 -104.039,-104.039l0,-555.69l260.097,175.223l260.097,-175.223Z" style="fill:#ffffff;"/>
+      <path d="M241.274,466.274l112.5,-112.5l112.5,112.5" style="fill:none;stroke:#03c4a1;stroke-width:75px;"/>
+      <path d="M353.774,591.676l0,-237.902" style="fill:none;stroke:#03c4a1;stroke-width:75px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+      <path d="M179.846,307.144l0,-54.674l340.86,0l0,54.674" style="fill:none;stroke:#c03088;stroke-width:64.1px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+    </svg>
+    <div class="us-wordmark">
+      <span class="us-word-use">Use</span>
+      <span class="us-word-saved">Saved</span>
+    </div>
+  </header>
+
+  <div class="us-body">
+    <div id="page-info-box" class="us-page-box">
+      <p id="page-title" class="us-page-title"></p>
+      <p id="page-url" class="us-page-url"></p>
+    </div>
+
+    <textarea id="save-note" class="us-textarea" rows="3" placeholder="Why are you saving this? (optional)"></textarea>
+
+    <button id="save-btn" class="us-btn-save">Save This Page</button>
+
+    <div id="status-msg" class="us-status" style="display:none"></div>
+
+    <button id="open-search-btn" class="us-btn-secondary">Search my saves →</button>
   </div>
 
-  <!-- SAVE VIEW -->
-  <div id="save-view" style="display:none;">
-    <div class="header">
-      <span class="logo">UseSaved</span>
-      <span id="pro-badge" style="display:none; font-size:11px; background:#6366f1; color:white; padding:2px 7px; border-radius:4px; font-weight:600;">PRO</span>
-    </div>
-    <div class="body-area">
-      <div class="page-info-box">
-        <div id="save-title" class="page-title"></div>
-        <div id="save-url" class="page-url"></div>
-      </div>
-      <textarea id="save-note" rows="3" class="input-field" placeholder="Add a note (optional)..." style="resize:vertical;"></textarea>
-      <button id="save-btn" class="btn-primary">Save This Page</button>
-      <div id="status-msg" class="status-msg" style="display:none;"></div>
-      <button id="open-search-btn" class="btn-secondary" style="margin-top:8px;">Search my saves →</button>
-    </div>
-    <div class="footer-row">
-      <span id="credits-display" class="credits-display"></span>
-      <a href="https://app.usesaved.com" target="_blank" id="dashboard-link" class="dashboard-link">Dashboard</a>
-      <a href="#" id="logout-link" class="logout-link">Log out</a>
-    </div>
-  </div>
+  <footer class="us-footer">
+    <span id="credits-display" class="us-credits"></span>
+    <a id="dashboard-link" href="https://app.usesaved.com" target="_blank">Dashboard</a>
+    <a id="logout-link" href="#">Log out</a>
+  </footer>
 
-  <script src="supabase.js"></script>
-  <script src="popup.js"></script>
+  <div class="us-bottom-bar">New here? <a href="https://app.usesaved.com" target="_blank">Sign up</a></div>
+</div>
+
+<script src="supabase.js"></script>
+<script src="popup.js"></script>
 </body>
 </html>

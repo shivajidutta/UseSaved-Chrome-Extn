@@ -3,54 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UseSaved</title>
+  <title>UseSaved Search</title>
   <link rel="stylesheet" href="sidepanel.css" />
 </head>
 <body>
 
-  <!-- LOGIN VIEW -->
-  <div id="sp-login-view">
-    <div class="sp-header">
-      <span class="logo">UseSaved</span>
+<!-- LOGIN VIEW -->
+<div id="sp-login-view">
+  <header class="sp-header">
+    <svg class="sp-logo-svg" viewBox="0 0 708 946" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:10;">
+      <path d="M613.871,23.91l0,555.69c0,57.421 -46.618,104.039 -104.039,104.039l-312.116,0c-57.421,0 -104.039,-46.618 -104.039,-104.039l0,-555.69l260.097,175.223l260.097,-175.223Z" style="fill:#ffffff;"/>
+      <path d="M241.274,466.274l112.5,-112.5l112.5,112.5" style="fill:none;stroke:#03c4a1;stroke-width:75px;"/>
+      <path d="M353.774,591.676l0,-237.902" style="fill:none;stroke:#03c4a1;stroke-width:75px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+      <path d="M179.846,307.144l0,-54.674l340.86,0l0,54.674" style="fill:none;stroke:#c03088;stroke-width:64.1px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+    </svg>
+    <div class="sp-wordmark">
+      <span class="sp-word-use">Use</span>
+      <span class="sp-word-saved">Saved</span>
     </div>
-    <div class="sp-body">
-      <p style="font-size:14px; color:#6b7280; margin-bottom:16px; line-height:1.5;">
-        Save any URL and find it later using plain English.
-      </p>
-      <button id="sp-login-btn" class="sp-btn-primary">Sign In</button>
-      <div id="sp-login-form" style="display:none; margin-top:12px;">
-        <input type="email" id="sp-email" class="sp-input" placeholder="Email" autocomplete="email" />
-        <input type="password" id="sp-password" class="sp-input" placeholder="Password" autocomplete="current-password" />
-        <div id="sp-login-error" class="sp-error-msg" style="display:none;"></div>
-        <button id="sp-submit-login" class="sp-btn-primary" style="margin-top:4px;">Sign In</button>
-      </div>
-      <div class="sp-current-page-box" id="sp-current-page-box" style="display:none;">
-        <div style="font-size:11px; color:#9ca3af; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Current Page</div>
-        <div id="sp-current-title" style="font-size:13px; font-weight:500; color:#111827; margin-bottom:3px;"></div>
-        <div id="sp-current-url" style="font-size:11px; color:#9ca3af; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
-      </div>
+  </header>
+
+  <div class="sp-body">
+    <p class="sp-welcome-sub">Sign in to search your saved knowledge</p>
+
+    <button id="sp-login-btn" class="sp-btn-primary">Sign In</button>
+
+    <div id="sp-login-form" style="display:none">
+      <input type="email" id="sp-email" class="sp-input" placeholder="your@email.com" />
+      <input type="password" id="sp-password" class="sp-input" placeholder="Password" />
+      <button id="sp-submit-login" class="sp-btn-primary">Log In</button>
+      <p id="sp-login-error" class="sp-error" style="display:none"></p>
+    </div>
+
+    <div id="sp-current-page-box" class="sp-current-page-box">
+      <p class="sp-box-label">Current page</p>
+      <p id="sp-current-title" class="sp-box-title"></p>
+      <p id="sp-current-url" class="sp-box-url"></p>
+    </div>
+
+    <p class="sp-hint">No account? <a href="https://www.usesaved.com/waitlist" target="_blank">Join the waitlist</a></p>
+  </div>
+</div>
+
+<!-- MAIN SEARCH VIEW -->
+<div id="sp-main-view" style="display:none">
+  <header class="sp-header">
+    <svg class="sp-logo-svg" viewBox="0 0 708 946" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:10;">
+      <path d="M613.871,23.91l0,555.69c0,57.421 -46.618,104.039 -104.039,104.039l-312.116,0c-57.421,0 -104.039,-46.618 -104.039,-104.039l0,-555.69l260.097,175.223l260.097,-175.223Z" style="fill:#ffffff;"/>
+      <path d="M241.274,466.274l112.5,-112.5l112.5,112.5" style="fill:none;stroke:#03c4a1;stroke-width:75px;"/>
+      <path d="M353.774,591.676l0,-237.902" style="fill:none;stroke:#03c4a1;stroke-width:75px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+      <path d="M179.846,307.144l0,-54.674l340.86,0l0,54.674" style="fill:none;stroke:#c03088;stroke-width:64.1px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+    </svg>
+    <div class="sp-wordmark">
+      <span class="sp-word-use">Use</span>
+      <span class="sp-word-saved">Saved</span>
+    </div>
+  </header>
+
+  <div class="sp-body">
+    <p id="sp-greeting" class="sp-greeting"></p>
+    <p class="sp-search-label">What can I help you find?</p>
+
+    <div class="sp-search-wrap">
+      <svg class="sp-search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="11" cy="11" r="7" stroke="#590995" stroke-width="2"/>
+        <path d="M16.5 16.5L21 21" stroke="#590995" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <textarea id="sp-search-input" class="sp-search-textarea" rows="2"
+        placeholder="Describe what you're looking for..."></textarea>
+    </div>
+
+    <button id="sp-search-btn" class="sp-btn-search">Search</button>
+
+    <div id="sp-results-area">
+      <p id="sp-results-hint" class="sp-hint-center">Type above and press Search</p>
+      <div id="sp-results-list"></div>
     </div>
   </div>
 
-  <!-- MAIN VIEW -->
-  <div id="sp-main-view" style="display:none; display:flex; flex-direction:column; height:100%;">
-    <div class="sp-header">
-      <span class="logo">UseSaved</span>
-    </div>
-    <div class="sp-body">
-      <div id="sp-greeting" class="sp-greeting"></div>
-      <div class="sp-search-label">What can I help you find?</div>
-      <textarea id="sp-search-input" class="sp-textarea" rows="3" placeholder="Describe what you're looking for…"></textarea>
-      <button id="sp-search-btn" class="sp-btn-primary">Search</button>
-      <div id="sp-search-error" class="sp-error-msg" style="display:none; margin-top:8px;"></div>
-      <div id="sp-results" style="margin-top:16px;"></div>
-    </div>
-    <div class="sp-footer">
-      <button id="sp-dashboard-btn" class="sp-btn-dashboard">Open Dashboard</button>
-    </div>
-  </div>
+  <footer class="sp-footer">
+    <button id="sp-dashboard-btn" class="sp-btn-dashboard">Open Dashboard →</button>
+  </footer>
+</div>
 
-  <script src="supabase.js"></script>
-  <script src="sidepanel.js"></script>
+<script src="supabase.js"></script>
+<script src="sidepanel.js"></script>
 </body>
 </html>
