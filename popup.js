@@ -5,6 +5,24 @@ const BACKEND_URL = 'https://usesaved-backend.onrender.com'
 const { createClient } = window.supabase
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+async function getValidSession() {
+  const stored = await chrome.storage.local.get(['session'])
+  if (!stored.session) return null
+
+  const { data, error } = await supabaseClient.auth.setSession({
+    access_token: stored.session.access_token,
+    refresh_token: stored.session.refresh_token,
+  })
+
+  if (error || !data.session) {
+    await chrome.storage.local.remove(['session', 'userProfile'])
+    return null
+  }
+
+  await chrome.storage.local.set({ session: data.session })
+  return data.session
+}
+
 let currentUrl = ''
 let currentTitle = ''
 
@@ -71,14 +89,18 @@ function showStatus(message, type) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get(['session', 'userProfile'], (stored) => {
-    if (stored.session && stored.userProfile) {
+document.addEventListener('DOMContentLoaded', async () => {
+  const session = await getValidSession()
+  if (session) {
+    const stored = await chrome.storage.local.get(['userProfile'])
+    if (stored.userProfile) {
       showSaveView(stored.userProfile)
     } else {
       showLoginView()
     }
-  })
+  } else {
+    showLoginView()
+  }
 
   document.getElementById('login-btn').addEventListener('click', () => {
     document.getElementById('login-btn').style.display = 'none'
@@ -144,9 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (_) {}
 
-      chrome.storage.local.set({ session, userProfile }, () => {
-        showSaveView(userProfile)
+      await chrome.storage.local.set({ session, userProfile })
+      await supabaseClient.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
       })
+      showSaveView(userProfile)
     } catch (err) {
       errorEl.textContent = err.message || 'Sign in failed. Please try again.'
       errorEl.style.display = 'block'
@@ -172,57 +197,79 @@ document.addEventListener('DOMContentLoaded', () => {
     saveBtn.disabled = true
     statusEl.style.display = 'none'
 
-    chrome.storage.local.get(['session', 'userProfile'], async (stored) => {
-      if (!stored.session) {
+    const session = await getValidSession()
+    if (!session) {
+      statusEl.innerHTML = 'Please log in again. Inactivity over 30 days leads to auto logout for your account security.'
+      statusEl.className = 'us-status error'
+      statusEl.style.display = 'block'
+      setTimeout(() => {
+        statusEl.style.display = 'none'
+        saveBtn.disabled = false
+        saveBtn.textContent = 'Save This Page'
         showLoginView()
-        return
-      }
+      }, 3000)
+      return
+    }
 
-      const token = stored.session.access_token
+    const token = session.access_token
 
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/saves`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ url: currentUrl, save_note: saveNote }),
-        })
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/saves`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ url: currentUrl, save_note: saveNote }),
+      })
 
-        if (res.ok) {
-          const data = await res.json()
-          document.getElementById('save-note').value = ''
-          showStatus('', 'success')
-          saveBtn.disabled = false
-          saveBtn.textContent = 'Save This Page'
-          setTimeout(window.close, 2000)
+      if (res.ok) {
+        const data = await res.json()
+        document.getElementById('save-note').value = ''
+        showStatus('', 'success')
+        saveBtn.disabled = false
+        saveBtn.textContent = 'Save This Page'
+        setTimeout(window.close, 2000)
 
-          if (data.credits_remaining !== undefined) {
-            chrome.storage.local.get(['userProfile'], (r) => {
-              const updated = { ...(r.userProfile || {}), credit_balance: data.credits_remaining }
-              chrome.storage.local.set({ userProfile: updated })
-            })
-          }
-        } else if (res.status === 402) {
-          showStatus('No credits remaining. Upgrade to Pro to keep saving.', 'error')
-          saveBtn.disabled = false
-          saveBtn.textContent = 'Save This Page'
-        } else {
-          const err = await res.json().catch(() => ({}))
-          showStatus(err.error || 'Save failed. Please try again.', 'error')
-          saveBtn.disabled = false
-          saveBtn.textContent = 'Save This Page'
+        if (data.credits_remaining !== undefined) {
+          chrome.storage.local.get(['userProfile'], (r) => {
+            const updated = { ...(r.userProfile || {}), credit_balance: data.credits_remaining }
+            chrome.storage.local.set({ userProfile: updated })
+          })
         }
-      } catch (_) {
-        showStatus('Network error. Check your connection.', 'error')
+      } else if (res.status === 402) {
+        showStatus('No credits remaining. Upgrade to Pro to keep saving.', 'error')
+        saveBtn.disabled = false
+        saveBtn.textContent = 'Save This Page'
+      } else if (res.status === 401) {
+        statusEl.innerHTML = 'Please log in again. Inactivity over 7 days leads to auto logout. It is inconvenient. But it protects your account.'
+        statusEl.className = 'us-status error'
+        statusEl.style.display = 'block'
+        saveBtn.disabled = false
+        saveBtn.textContent = 'Save This Page'
+        setTimeout(() => {
+          statusEl.style.display = 'none'
+          showLoginView()
+        }, 3000)
+      } else {
+        const err = await res.json().catch(() => ({}))
+        showStatus(err.error || 'Save failed. Please try again.', 'error')
         saveBtn.disabled = false
         saveBtn.textContent = 'Save This Page'
       }
-    })
+    } catch (_) {
+      showStatus('Network error. Check your connection.', 'error')
+      saveBtn.disabled = false
+      saveBtn.textContent = 'Save This Page'
+    }
   })
 
   document.getElementById('open-search-btn').addEventListener('click', async () => {
+    const session = await getValidSession()
+    if (!session) {
+      showLoginView()
+      return
+    }
     const tab = await getCurrentTab()
     if (tab) {
       chrome.sidePanel.open({ windowId: tab.windowId })
@@ -233,8 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('logout-link').addEventListener('click', async (e) => {
     e.preventDefault()
     await supabaseClient.auth.signOut()
-    chrome.storage.local.remove(['session', 'userProfile'], () => {
-      showLoginView()
-    })
+    await chrome.storage.local.remove(['session', 'userProfile'])
+    showLoginView()
   })
 })

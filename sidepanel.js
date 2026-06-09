@@ -5,6 +5,24 @@ const BACKEND_URL = 'https://usesaved-backend.onrender.com'
 const { createClient } = window.supabase
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+async function getValidSession() {
+  const stored = await chrome.storage.local.get(['session'])
+  if (!stored.session) return null
+
+  const { data, error } = await supabaseClient.auth.setSession({
+    access_token: stored.session.access_token,
+    refresh_token: stored.session.refresh_token,
+  })
+
+  if (error || !data.session) {
+    await chrome.storage.local.remove(['session', 'userProfile'])
+    return null
+  }
+
+  await chrome.storage.local.set({ session: data.session })
+  return data.session
+}
+
 function capitalise(str) {
   if (!str) return str
   return str.charAt(0).toUpperCase() + str.slice(1)
@@ -114,53 +132,60 @@ async function doSearch() {
 
   if (!query) return
 
-  chrome.storage.local.get(['session'], async (stored) => {
-    if (!stored.session) {
+  const session = await getValidSession()
+  if (!session) {
+    resultsHint.textContent = 'Please log in again. Inactivity over 30 days leads to auto logout for your account security.'
+    resultsHint.style.display = 'block'
+    setTimeout(() => {
       resultsHint.style.display = 'none'
-      resultsList.innerHTML = '<p style="font-size:13px;color:#dc2626;text-align:center;padding:16px 0;">Session expired. Please sign in again.</p>'
-      return
+      showLoginView()
+    }, 3000)
+    return
+  }
+
+  const token = session.access_token
+  searchBtn.disabled = true
+  searchBtn.textContent = 'Searching…'
+  resultsHint.style.display = 'none'
+  resultsList.innerHTML = ''
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ query }),
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      renderResults(data.results || data)
+    } else {
+      const err = await res.json().catch(() => ({}))
+      resultsList.innerHTML = `<p style="font-size:13px;color:#dc2626;text-align:center;padding:16px 0;">${err.error || 'Search failed. Please try again.'}</p>`
     }
+  } catch (_) {
+    resultsList.innerHTML = '<p style="font-size:13px;color:#dc2626;text-align:center;padding:16px 0;">Network error. Check your connection.</p>'
+  }
 
-    const token = stored.session.access_token
-    searchBtn.disabled = true
-    searchBtn.textContent = 'Searching…'
-    resultsHint.style.display = 'none'
-    resultsList.innerHTML = ''
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ query }),
-      })
-
-      if (res.ok) {
-        const data = await res.json()
-        renderResults(data.results || data)
-      } else {
-        const err = await res.json().catch(() => ({}))
-        resultsList.innerHTML = `<p style="font-size:13px;color:#dc2626;text-align:center;padding:16px 0;">${err.error || 'Search failed. Please try again.'}</p>`
-      }
-    } catch (_) {
-      resultsList.innerHTML = '<p style="font-size:13px;color:#dc2626;text-align:center;padding:16px 0;">Network error. Check your connection.</p>'
-    }
-
-    searchBtn.disabled = false
-    searchBtn.textContent = 'Search'
-  })
+  searchBtn.disabled = false
+  searchBtn.textContent = 'Search'
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get(['session', 'userProfile'], (stored) => {
-    if (stored.session && stored.userProfile) {
+document.addEventListener('DOMContentLoaded', async () => {
+  const session = await getValidSession()
+  if (session) {
+    const stored = await chrome.storage.local.get(['userProfile'])
+    if (stored.userProfile) {
       showMainView(stored.userProfile)
     } else {
       showLoginView()
     }
-  })
+  } else {
+    showLoginView()
+  }
 
   document.getElementById('sp-login-btn').addEventListener('click', () => {
     document.getElementById('sp-login-btn').style.display = 'none'
@@ -210,9 +235,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (_) {}
 
-      chrome.storage.local.set({ session, userProfile }, () => {
-        showMainView(userProfile)
+      await chrome.storage.local.set({ session, userProfile })
+      await supabaseClient.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
       })
+      showMainView(userProfile)
     } catch (err) {
       errorEl.textContent = err.message || 'Sign in failed. Please try again.'
       errorEl.style.display = 'block'
@@ -238,7 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  document.getElementById('sp-dashboard-btn').addEventListener('click', () => {
+  document.getElementById('sp-dashboard-btn').addEventListener('click', async () => {
+    const session = await getValidSession()
+    if (!session) {
+      showLoginView()
+      return
+    }
     chrome.tabs.create({ url: 'https://app.usesaved.com' })
   })
 })
