@@ -134,7 +134,7 @@ async function doSearch() {
 
   const session = await getValidSession()
   if (!session) {
-    resultsHint.textContent = 'Please log in again. Inactivity over 30 days leads to auto logout for your account security.'
+    resultsHint.textContent = 'Please log in again. Inactivity over 7 days leads to auto logout for your account security.'
     resultsHint.style.display = 'block'
     setTimeout(() => {
       resultsHint.style.display = 'none'

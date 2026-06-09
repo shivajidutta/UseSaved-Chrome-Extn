@@ -37,6 +37,25 @@ async function getCurrentTab() {
 function showLoginView() {
   document.getElementById('login-view').style.display = 'block'
   document.getElementById('save-view').style.display = 'none'
+
+  const loginBtn = document.getElementById('login-btn')
+  const loginBtnWrap = document.getElementById('login-btn-wrap')
+  const loginForm = document.getElementById('login-form')
+  const submitBtn = document.getElementById('submit-login-btn')
+  const loginError = document.getElementById('login-error')
+  const statusMsg = document.getElementById('status-msg')
+
+  loginBtn.textContent = 'Sign In'
+  loginBtn.disabled = false
+  submitBtn.textContent = 'Log In'
+  submitBtn.disabled = false
+  document.getElementById('email-input').value = ''
+  document.getElementById('password-input').value = ''
+  loginError.style.display = 'none'
+  loginForm.style.display = 'none'
+  if (loginBtnWrap) loginBtnWrap.style.display = 'block'
+  statusMsg.style.display = 'none'
+
   getCurrentTab().then((tab) => {
     if (tab) {
       currentUrl = tab.url || ''
@@ -199,7 +218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const session = await getValidSession()
     if (!session) {
-      statusEl.innerHTML = 'Please log in again. Inactivity over 30 days leads to auto logout for your account security.'
+      statusEl.innerHTML = 'Please log in again. Inactivity over 7 days leads to auto logout for your account security.'
       statusEl.className = 'us-status error'
       statusEl.style.display = 'block'
       setTimeout(() => {
