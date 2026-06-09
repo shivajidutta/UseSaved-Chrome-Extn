@@ -97,6 +97,16 @@ function showSaveView(profile) {
   }
 }
 
+async function openDashboard() {
+  const session = await getValidSession()
+  if (session) {
+    const params = `access_token=${session.access_token}&refresh_token=${session.refresh_token}&type=session`
+    chrome.tabs.create({ url: `https://app.usesaved.com/#${params}` })
+  } else {
+    chrome.tabs.create({ url: 'https://app.usesaved.com' })
+  }
+}
+
 function showStatus(message, type) {
   const el = document.getElementById('status-msg')
   el.className = `us-status ${type}`
@@ -294,6 +304,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       chrome.sidePanel.open({ windowId: tab.windowId })
       window.close()
     }
+  })
+
+  document.getElementById('dashboard-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    await openDashboard()
   })
 
   document.getElementById('logout-link').addEventListener('click', async (e) => {

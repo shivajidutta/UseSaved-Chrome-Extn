@@ -268,10 +268,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('sp-dashboard-btn').addEventListener('click', async () => {
     const session = await getValidSession()
-    if (!session) {
-      showLoginView()
-      return
+    if (session) {
+      const params = `access_token=${session.access_token}&refresh_token=${session.refresh_token}&type=session`
+      chrome.tabs.create({ url: `https://app.usesaved.com/#${params}` })
+    } else {
+      chrome.tabs.create({ url: 'https://app.usesaved.com' })
     }
-    chrome.tabs.create({ url: 'https://app.usesaved.com' })
   })
 })
