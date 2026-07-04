@@ -1,10 +1,9 @@
 {
   "manifest_version": 3,
   "name": "UseSaved",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Save any URL. Find it later with plain English.",
   "permissions": ["storage", "tabs", "activeTab", "sidePanel"],
-  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Save to UseSaved",

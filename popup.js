@@ -78,6 +78,10 @@ function showSaveView(profile) {
     }
   })
 
+  updateCreditsDisplay(profile)
+}
+
+function updateCreditsDisplay(profile) {
   const plan = profile.plan || 'free'
   const credits = profile.credit_balance != null ? Number(profile.credit_balance) : 0
   const creditsEl = document.getElementById('credits-display')
@@ -99,12 +103,24 @@ function showSaveView(profile) {
 
 async function openDashboard() {
   const session = await getValidSession()
-  if (session) {
-    const params = `access_token=${session.access_token}&refresh_token=${session.refresh_token}&type=session`
-    chrome.tabs.create({ url: `https://app.usesaved.com/#${params}` })
-  } else {
+  if (!session) {
     chrome.tabs.create({ url: 'https://app.usesaved.com' })
+    return
   }
+  // Single-use handoff code instead of raw tokens: the URL (and browser
+  // history) never contains anything that works twice or outlives 60 seconds
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/handoff`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    if (res.ok) {
+      const { code } = await res.json()
+      chrome.tabs.create({ url: `https://app.usesaved.com/#handoff_code=${code}` })
+      return
+    }
+  } catch (_) {}
+  chrome.tabs.create({ url: 'https://app.usesaved.com' })
 }
 
 function showStatus(message, type) {
@@ -189,7 +205,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (meRes.ok) {
-          const me = await meRes.json()
+          const payload = await meRes.json()
+          const me = payload.user || payload
           if (typeof me.credit_balance === 'number') userProfile.credit_balance = me.credit_balance
           if (me.plan) userProfile.plan = me.plan
         }
@@ -255,21 +272,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (res.ok) {
         const data = await res.json()
         document.getElementById('save-note').value = ''
-        showStatus('', 'success')
         saveBtn.disabled = false
         saveBtn.textContent = 'Save This Page'
-        setTimeout(window.close, 2000)
 
-        if (data.credits_remaining !== undefined) {
+        if (data.tagging === false) {
+          // Save stored, but tagging skipped: keep the popup open so the user sees why
+          showStatus('Saved, but not tagged. You are out of credits.', 'error')
+        } else {
+          showStatus('', 'success')
+          setTimeout(window.close, 2000)
+        }
+
+        if (typeof data.credit_balance === 'number') {
+          // Balance is read before the async tag charge, so show the post-charge number
+          const willCharge = data.tagging !== false && data.plan !== 'pro'
+          const newBalance = willCharge ? Math.max(0, data.credit_balance - 1) : data.credit_balance
           chrome.storage.local.get(['userProfile'], (r) => {
-            const updated = { ...(r.userProfile || {}), credit_balance: data.credits_remaining }
+            const updated = { ...(r.userProfile || {}), credit_balance: newBalance }
             chrome.storage.local.set({ userProfile: updated })
+            updateCreditsDisplay(updated)
           })
         }
-      } else if (res.status === 402) {
-        showStatus('No credits remaining. Upgrade to Pro to keep saving.', 'error')
-        saveBtn.disabled = false
-        saveBtn.textContent = 'Save This Page'
       } else if (res.status === 401) {
         statusEl.innerHTML = 'Please log in again. Inactivity over 7 days leads to auto logout. It is inconvenient. But it protects your account.'
         statusEl.className = 'us-status error'

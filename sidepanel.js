@@ -268,11 +268,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('sp-dashboard-btn').addEventListener('click', async () => {
     const session = await getValidSession()
-    if (session) {
-      const params = `access_token=${session.access_token}&refresh_token=${session.refresh_token}&type=session`
-      chrome.tabs.create({ url: `https://app.usesaved.com/#${params}` })
-    } else {
+    if (!session) {
       chrome.tabs.create({ url: 'https://app.usesaved.com' })
+      return
     }
+    // Single-use handoff code instead of raw tokens (see popup.js openDashboard)
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/handoff`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (res.ok) {
+        const { code } = await res.json()
+        chrome.tabs.create({ url: `https://app.usesaved.com/#handoff_code=${code}` })
+        return
+      }
+    } catch (_) {}
+    chrome.tabs.create({ url: 'https://app.usesaved.com' })
   })
 })
