@@ -56,6 +56,9 @@ function showLoginView() {
   if (loginBtnWrap) loginBtnWrap.style.display = 'block'
   statusMsg.style.display = 'none'
 
+  const forgotLink = document.getElementById('forgot-password-link')
+  if (forgotLink) forgotLink.textContent = 'Forgot password?'
+
   getCurrentTab().then((tab) => {
     if (tab) {
       currentUrl = tab.url || ''
@@ -101,6 +104,22 @@ function updateCreditsDisplay(profile) {
   }
 }
 
+async function fetchProfile(token) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/users/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (res.ok) {
+      const payload = await res.json()
+      const me = payload.user || payload
+      if (me && typeof me.credit_balance === 'number') {
+        return { email: me.email, plan: me.plan || 'free', credit_balance: me.credit_balance }
+      }
+    }
+  } catch (_) {}
+  return null
+}
+
 async function openDashboard() {
   const session = await getValidSession()
   if (!session) {
@@ -137,10 +156,16 @@ function showStatus(message, type) {
 document.addEventListener('DOMContentLoaded', async () => {
   const session = await getValidSession()
   if (session) {
+    // Show the cached profile instantly, then correct it with the server's
+    // number — credits can change from the dashboard or other devices
     const stored = await chrome.storage.local.get(['userProfile'])
-    if (stored.userProfile) {
-      showSaveView(stored.userProfile)
-    } else {
+    if (stored.userProfile) showSaveView(stored.userProfile)
+
+    const fresh = await fetchProfile(session.access_token)
+    if (fresh) {
+      await chrome.storage.local.set({ userProfile: fresh })
+      showSaveView(fresh)
+    } else if (!stored.userProfile) {
       showLoginView()
     }
   } else {
@@ -232,6 +257,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('password-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('submit-login-btn').click()
+  })
+
+  document.getElementById('forgot-password-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    const link = e.target
+    const email = document.getElementById('email-input').value.trim()
+    const errorEl = document.getElementById('login-error')
+    if (!email || !email.includes('@')) {
+      errorEl.textContent = 'Enter your email above first, then click Forgot password.'
+      errorEl.style.display = 'block'
+      return
+    }
+    errorEl.style.display = 'none'
+    link.textContent = 'Sending…'
+    try {
+      await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://app.usesaved.com/reset-password',
+      })
+      link.textContent = 'Reset link sent. Check your email.'
+    } catch (_) {
+      link.textContent = 'Could not send. Try again.'
+    }
   })
 
   document.getElementById('save-btn').addEventListener('click', async () => {

@@ -257,6 +257,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Enter') document.getElementById('sp-submit-login').click()
   })
 
+  document.getElementById('sp-forgot-password-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    const link = e.target
+    const email = document.getElementById('sp-email').value.trim()
+    const errorEl = document.getElementById('sp-login-error')
+    if (!email || !email.includes('@')) {
+      errorEl.textContent = 'Enter your email above first, then click Forgot password.'
+      errorEl.style.display = 'block'
+      return
+    }
+    errorEl.style.display = 'none'
+    link.textContent = 'Sending…'
+    try {
+      await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://app.usesaved.com/reset-password',
+      })
+      link.textContent = 'Reset link sent. Check your email.'
+    } catch (_) {
+      link.textContent = 'Could not send. Try again.'
+    }
+  })
+
   document.getElementById('sp-search-btn').addEventListener('click', doSearch)
 
   document.getElementById('sp-search-input').addEventListener('keydown', (e) => {
