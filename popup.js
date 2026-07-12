@@ -383,7 +383,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('logout-link').addEventListener('click', async (e) => {
     e.preventDefault()
-    await supabaseClient.auth.signOut()
+    // scope:'local' — only end THIS surface's session. The default ('global')
+    // revokes every session the user has, silently logging them out of the
+    // dashboard and any other device.
+    await supabaseClient.auth.signOut({ scope: 'local' })
     await chrome.storage.local.remove(['session', 'userProfile'])
     showLoginView()
   })
