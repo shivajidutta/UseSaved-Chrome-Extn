@@ -69,6 +69,16 @@
 
     <textarea id="save-note" class="us-textarea" rows="3" placeholder="Why are you saving this? (optional)"></textarea>
 
+    <div class="us-note-search">
+      <label class="us-toggle">
+        <input type="checkbox" id="note-searchable" checked />
+        <span class="us-toggle-track"><span class="us-toggle-thumb"></span></span>
+        <span class="us-toggle-label">Make this note searchable</span>
+      </label>
+      <p class="us-note-hint">We'll turn what you wrote into tags so you can find this save later.</p>
+      <p id="note-private-warning" class="us-note-warning" style="display:none">Your note stays private and encrypted, but we won't create tags from it, so you won't be able to find this save by what you wrote here.</p>
+    </div>
+
     <button id="save-btn" class="us-btn-save">Save This Page</button>
 
     <div id="status-msg" class="us-status" style="display:none"></div>

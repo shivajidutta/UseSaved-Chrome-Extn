@@ -281,9 +281,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   })
 
+  const noteSearchableToggle = document.getElementById('note-searchable')
+  if (noteSearchableToggle) {
+    noteSearchableToggle.addEventListener('change', () => {
+      const off = !noteSearchableToggle.checked
+      const warn = document.getElementById('note-private-warning')
+      const hint = document.querySelector('.us-note-hint')
+      if (warn) warn.style.display = off ? 'block' : 'none'
+      if (hint) hint.style.display = off ? 'none' : 'block'
+    })
+  }
+
   document.getElementById('save-btn').addEventListener('click', async () => {
     const saveBtn = document.getElementById('save-btn')
     const saveNote = document.getElementById('save-note').value.trim()
+    const noteSearchable = document.getElementById('note-searchable').checked
     const statusEl = document.getElementById('status-msg')
 
     saveBtn.textContent = 'Saving...'
@@ -313,12 +325,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ url: currentUrl, save_note: saveNote }),
+        body: JSON.stringify({ url: currentUrl, save_note: saveNote, note_searchable: noteSearchable }),
       })
 
       if (res.ok) {
         const data = await res.json()
         document.getElementById('save-note').value = ''
+        const nsToggle = document.getElementById('note-searchable')
+        if (nsToggle) { nsToggle.checked = true; nsToggle.dispatchEvent(new Event('change')) }
         saveBtn.disabled = false
         saveBtn.textContent = 'Save This Page'
 

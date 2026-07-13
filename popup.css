@@ -320,3 +320,85 @@ body {
 
 .us-bottom-bar a:hover,
 .us-bottom-hint a:hover { text-decoration: underline; }
+
+/* ── Searchable-note toggle ──────────────── */
+.us-note-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.us-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.us-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.us-toggle-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  background: var(--outline-strong);
+  border-radius: var(--radius-full);
+  transition: background 0.15s;
+}
+
+.us-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s;
+}
+
+.us-toggle input:checked + .us-toggle-track {
+  background: var(--teal);
+}
+
+.us-toggle input:checked + .us-toggle-track .us-toggle-thumb {
+  transform: translateX(18px);
+}
+
+.us-toggle input:focus-visible + .us-toggle-track {
+  box-shadow: 0 0 0 3px rgba(3, 196, 161, 0.25);
+}
+
+.us-toggle-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.us-note-hint {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+
+.us-note-warning {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #dc2626;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-weight: 500;
+}
