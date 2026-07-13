@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "UseSaved",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Save any URL. Find it later with plain English.",
   "permissions": ["storage", "tabs", "activeTab", "sidePanel"],
   "action": {
