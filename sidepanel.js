@@ -73,7 +73,7 @@ function renderResults(results) {
   list.innerHTML = ''
 
   if (!results || results.length === 0) {
-    list.innerHTML = '<p style="font-size:13px;color:#9ca3af;text-align:center;padding:24px 0;">No saves matched that description.</p>'
+    list.innerHTML = '<p style="font-size:13px;color:#9ca3af;text-align:center;padding:24px 0;">Nothing matches what you\'re looking for.</p>'
     return
   }
 
