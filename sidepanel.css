@@ -383,3 +383,43 @@ body {
 
 .sp-btn-dashboard:hover  { background: #0d0366; }
 .sp-btn-dashboard:active { transform: scale(0.98); }
+
+/* ── Loading skeleton ────────────────────── */
+.sp-skel-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sp-skel {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-var);
+  border-radius: var(--radius-sm);
+}
+
+.sp-skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+  animation: sp-shimmer 1.4s ease-in-out infinite;
+}
+
+.sp-skel-bar { height: 14px; width: 60%; }
+.sp-skel-box { height: 64px; border-radius: var(--radius-md); }
+.sp-skel-btn { height: 40px; border-radius: var(--radius-full); }
+
+.sp-loading-slow {
+  opacity: 0;
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 4px;
+  animation: sp-appear 0.3s ease 4s forwards;
+}
+
+@keyframes sp-shimmer { to { transform: translateX(100%); } }
+@keyframes sp-appear { to { opacity: 1; } }
