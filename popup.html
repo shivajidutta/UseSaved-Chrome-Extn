@@ -8,8 +8,30 @@
 </head>
 <body>
 
+<!-- LOADING VIEW (default while the auth check runs) -->
+<div id="loading-view">
+  <header class="us-header">
+    <svg class="us-logo-svg" viewBox="0 0 708 946" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:10;">
+      <path d="M613.871,23.91l0,555.69c0,57.421 -46.618,104.039 -104.039,104.039l-312.116,0c-57.421,0 -104.039,-46.618 -104.039,-104.039l0,-555.69l260.097,175.223l260.097,-175.223Z" style="fill:#ffffff;"/>
+      <path d="M241.274,466.274l112.5,-112.5l112.5,112.5" style="fill:none;stroke:#03c4a1;stroke-width:75px;"/>
+      <path d="M353.774,591.676l0,-237.902" style="fill:none;stroke:#03c4a1;stroke-width:75px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+      <path d="M179.846,307.144l0,-54.674l340.86,0l0,54.674" style="fill:none;stroke:#c03088;stroke-width:64.1px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+    </svg>
+    <div class="us-wordmark">
+      <span class="us-word-use">Use</span>
+      <span class="us-word-saved">Saved</span>
+    </div>
+  </header>
+  <div class="us-skel-body">
+    <div class="us-skel us-skel-bar"></div>
+    <div class="us-skel us-skel-box"></div>
+    <div class="us-skel us-skel-btn"></div>
+    <p class="us-loading-slow">Still connecting&hellip;</p>
+  </div>
+</div>
+
 <!-- LOGIN VIEW -->
-<div id="login-view">
+<div id="login-view" style="display:none">
   <header class="us-header">
     <svg class="us-logo-svg" viewBox="0 0 708 946" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:10;">
       <path d="M613.871,23.91l0,555.69c0,57.421 -46.618,104.039 -104.039,104.039l-312.116,0c-57.421,0 -104.039,-46.618 -104.039,-104.039l0,-555.69l260.097,175.223l260.097,-175.223Z" style="fill:#ffffff;"/>

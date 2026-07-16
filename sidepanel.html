@@ -8,8 +8,30 @@
 </head>
 <body>
 
+<!-- LOADING VIEW (default while the auth check runs) -->
+<div id="sp-loading-view">
+  <header class="sp-header">
+    <svg class="sp-logo-svg" viewBox="0 0 708 946" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:10;">
+      <path d="M613.871,23.91l0,555.69c0,57.421 -46.618,104.039 -104.039,104.039l-312.116,0c-57.421,0 -104.039,-46.618 -104.039,-104.039l0,-555.69l260.097,175.223l260.097,-175.223Z" style="fill:#ffffff;"/>
+      <path d="M241.274,466.274l112.5,-112.5l112.5,112.5" style="fill:none;stroke:#03c4a1;stroke-width:75px;"/>
+      <path d="M353.774,591.676l0,-237.902" style="fill:none;stroke:#03c4a1;stroke-width:75px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+      <path d="M179.846,307.144l0,-54.674l340.86,0l0,54.674" style="fill:none;stroke:#c03088;stroke-width:64.1px;stroke-linejoin:round;stroke-miterlimit:1.5;"/>
+    </svg>
+    <div class="sp-wordmark">
+      <span class="sp-word-use">Use</span>
+      <span class="sp-word-saved">Saved</span>
+    </div>
+  </header>
+  <div class="sp-skel-body">
+    <div class="sp-skel sp-skel-bar"></div>
+    <div class="sp-skel sp-skel-box"></div>
+    <div class="sp-skel sp-skel-btn"></div>
+    <p class="sp-loading-slow">Still connecting&hellip;</p>
+  </div>
+</div>
+
 <!-- LOGIN VIEW -->
-<div id="sp-login-view">
+<div id="sp-login-view" style="display:none">
   <header class="sp-header">
     <svg class="sp-logo-svg" viewBox="0 0 708 946" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:10;">
       <path d="M613.871,23.91l0,555.69c0,57.421 -46.618,104.039 -104.039,104.039l-312.116,0c-57.421,0 -104.039,-46.618 -104.039,-104.039l0,-555.69l260.097,175.223l260.097,-175.223Z" style="fill:#ffffff;"/>

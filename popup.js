@@ -35,11 +35,11 @@ async function getCurrentTab() {
 }
 
 function showLoginView() {
+  document.getElementById('loading-view').style.display = 'none'
   document.getElementById('login-view').style.display = 'block'
   document.getElementById('save-view').style.display = 'none'
 
   const loginBtn = document.getElementById('login-btn')
-  const loginBtnWrap = document.getElementById('login-btn-wrap')
   const loginForm = document.getElementById('login-form')
   const submitBtn = document.getElementById('submit-login-btn')
   const loginError = document.getElementById('login-error')
@@ -47,13 +47,15 @@ function showLoginView() {
 
   loginBtn.textContent = 'Sign In'
   loginBtn.disabled = false
+  // Clear the inline hide applied when the Sign In button was clicked,
+  // otherwise a logout in the same popup session leaves no login CTA
+  loginBtn.style.display = ''
   submitBtn.textContent = 'Log In'
   submitBtn.disabled = false
   document.getElementById('email-input').value = ''
   document.getElementById('password-input').value = ''
   loginError.style.display = 'none'
   loginForm.style.display = 'none'
-  if (loginBtnWrap) loginBtnWrap.style.display = 'block'
   statusMsg.style.display = 'none'
 
   const forgotLink = document.getElementById('forgot-password-link')
@@ -69,6 +71,7 @@ function showLoginView() {
 }
 
 function showSaveView(profile) {
+  document.getElementById('loading-view').style.display = 'none'
   document.getElementById('login-view').style.display = 'none'
   document.getElementById('save-view').style.display = 'block'
 

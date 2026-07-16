@@ -37,8 +37,15 @@ async function getCurrentTab() {
 }
 
 function showLoginView() {
+  document.getElementById('sp-loading-view').style.display = 'none'
   document.getElementById('sp-login-view').style.display = 'flex'
   document.getElementById('sp-main-view').style.display = 'none'
+
+  // Reset to the canonical logged-out state: Sign In button visible, form
+  // hidden — the Sign In click hides the button inline and nothing else
+  // restores it when this view is re-entered (e.g. after a 401)
+  document.getElementById('sp-login-btn').style.display = ''
+  document.getElementById('sp-login-form').style.display = 'none'
 
   getCurrentTab().then((tab) => {
     if (tab && tab.url) {
@@ -49,6 +56,7 @@ function showLoginView() {
 }
 
 function showMainView(profile) {
+  document.getElementById('sp-loading-view').style.display = 'none'
   document.getElementById('sp-login-view').style.display = 'none'
   const mainView = document.getElementById('sp-main-view')
   mainView.style.display = 'flex'
